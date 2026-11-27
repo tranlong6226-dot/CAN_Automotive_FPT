@@ -1,0 +1,10 @@
+#ifndef __VL53L0X_H
+#define __VL53L0X_H
+
+#include "main.h"
+#include <stdint.h>
+
+uint8_t VL53L0X_Init(void);
+float VL53L0X_ReadDistance_cm(void);
+
+#endif /* __VL53L0X_H */
