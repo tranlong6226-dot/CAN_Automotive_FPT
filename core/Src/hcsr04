@@ -1,0 +1,51 @@
+#include "hcsr04.h"
+#include "tim.h"
+
+static void HCSR04_DelayUs(uint16_t us)
+{
+    __HAL_TIM_SET_COUNTER(&htim2, 0);
+    while (__HAL_TIM_GET_COUNTER(&htim2) < us);
+}
+
+void HCSR04_Init(void)
+{
+    HAL_TIM_Base_Start(&htim2);
+    HAL_GPIO_WritePin(HCSR04_TRIG_GPIO_Port, HCSR04_TRIG_Pin, GPIO_PIN_RESET);
+}
+
+/* Tra ve khoang cach theo cm;
+float HCSR04_ReadDistance_cm(void)
+{
+    uint32_t pulse_us = 0;
+
+    /* 1. Tao xung k�ch 10 us tr�n ch�n TRIG */
+    HAL_GPIO_WritePin(HCSR04_TRIG_GPIO_Port, HCSR04_TRIG_Pin, GPIO_PIN_RESET);
+    HCSR04_DelayUs(2);
+    HAL_GPIO_WritePin(HCSR04_TRIG_GPIO_Port, HCSR04_TRIG_Pin, GPIO_PIN_SET);
+    HCSR04_DelayUs(10);
+    HAL_GPIO_WritePin(HCSR04_TRIG_GPIO_Port, HCSR04_TRIG_Pin, GPIO_PIN_RESET);
+
+    /* 2. ch�n ECHO l�n muc HIGH (timeout 10 ms) */
+    __HAL_TIM_SET_COUNTER(&htim2, 0);
+    while (HAL_GPIO_ReadPin(HCSR04_ECHO_GPIO_Port, HCSR04_ECHO_Pin) == GPIO_PIN_RESET)
+    {
+        if (__HAL_TIM_GET_COUNTER(&htim2) > 10000)
+        {
+            return -1.0f;
+        }
+    }
+
+    /* 3. �o thoi gian ch�n ECHO giu muc HIGH (timeout 30 ms ~ 5m) */
+    __HAL_TIM_SET_COUNTER(&htim2, 0);
+    while (HAL_GPIO_ReadPin(HCSR04_ECHO_GPIO_Port, HCSR04_ECHO_Pin) == GPIO_PIN_SET)
+    {
+        if (__HAL_TIM_GET_COUNTER(&htim2) > 30000)
+        {
+            return -1.0f;
+        }
+    }
+    pulse_us = __HAL_TIM_GET_COUNTER(&htim2);
+
+    /* �m thanh ~0.0343 cm/us, chia 2 cho qu�ng duong di v� ve */
+    return ((float)pulse_us * 0.0343f) / 2.0f;
+}
